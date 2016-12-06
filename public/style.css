@@ -12,7 +12,7 @@
    .round {
      z-index: 6;
    }
-   .linSlider {
+   #linearSlider {
 
      z-index: 7;
      background-color: white;
@@ -30,7 +30,7 @@
    }
 
    #slider .rs-border.rs-outer  {
-       border: 8px dashed #999;
+       border: 2px dashed #999;
    }
 
 
@@ -61,7 +61,7 @@
    /*#slider .rs-seperator { border: 1px solid #19D6D3; }*/
 
    #slider2 .rs-border.rs-outer  {
-       border: 5px dashed #999999;
+       border: 3px dashed #999999;
    }
 
    #slider2 .rs-range-color  {

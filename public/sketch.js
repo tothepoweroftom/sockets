@@ -1,9 +1,8 @@
-// ITP Networked Media, Fall 2014
-// https://github.com/shiffman/itp-networked-media
-// Daniel Shiffman
 
-// Keep track of our socket connection
-var socket;
+//Connectivity
+var sb,
+app_name = "Data_Vis_Controller";
+
 
 
 //Sliders!
@@ -13,13 +12,13 @@ var slider2;
 //DIV Elements
 var sliderDiv;
 var sliderDiv2;
+var linearSliderDiv;
 
 var sliderRad;
 var sliderRad2;
 // var sliderRad2  = 300;
 // var sliderRad3 = 370;
 
-var linearSliderDiv;
 var margin = 30;
 var orbitWidth = 12;
 
@@ -80,6 +79,10 @@ function setup() {
     change: "onValueChange2"
   });
 
+  linearSliderDiv = createDiv("");
+  linearSliderDiv.id("linearSlider");
+  //linearSliderDiv.class("lslider");
+  linearSliderDiv.position(windowWidth / 2, windowHeight -20);
 
 
 //linearSlider.position(windowWidth/2, windowHeight-50);
@@ -94,40 +97,62 @@ function setup() {
 
   //Text Input
   input = createInput();
-  input.position(windowWidth/2 -50, 10);
+  input.position(windowWidth/2 -150, 10);
   input.class('black');
-  input.value('Filter');
-  input.style('width', '100px');
+  input.value('...');
+  input.style('width', '300px');
   input.style('z-index', '8');
+  input.style('text-align', 'center');
+
 
 
   linSlider = createSlider(0, 100, 50, 10);
   linSlider.style('width', '200px');
+  linSlider.style('z-index', '9');
 
   linSlider.position(windowWidth/2-100, windowHeight-20);
   linSlider.class('linSlider');
 
 
-  // Start a socket connection to the server
-  // Some day we would run this server somewhere else
-  socket = io.connect('http://localhost:3000');
-  // We make a named event called 'mouse' and write an
-  // anonymous callback function
-  socket.on('mouse',
-    // When we receive data
-    function(data) {
-      console.log("Got: " + data.x + " " + data.y);
-      // Draw a blue circle
-      fill(0,0,255);
-      noStroke();
-      ellipse(data.x, data.y, 20, 20);
+
+
+  //Setup our Connectivity
+   sb = new Spacebrew.Client("192.168.5.198", app_name, "Remote controls for data visualization", {reconnect: true} );
+
+    // add publishers and subscribers
+    sb.addPublish("slider1", "range", "0" );
+    sb.addPublish("slider2", "range", "0" );
+    sb.addPublish("centralButton", "boolean", "false" );
+    sb.addPublish("linearSlider", "range", "0" );
+
+
+    sb.addSubscribe("backgroundColor", "range" );
+
+    // listen to events
+    // note: different than above, we can just write the
+    // function here!
+    sb.onRangeMessage = function( name, value ){
+        // change the bg color based on the range!
+        document.body.style.backgroundColor = "rgb(" + value +"," + value +"," + value + ")"
     }
-  );
+
+    // send range based on mouse X
+
+    document.body.onmousemove = function( e ){
+
+    }
+
+    // connect
+    sb.connect();
+
+
 }
 
 function draw() {
   // Nothing
   background(0);
+  //sb.send("buttonPress", "boolean", "true");
+
 }
 
 function mouseDragged() {
@@ -136,8 +161,16 @@ function mouseDragged() {
   // noStroke();
   // ellipse(mouseX,mouseY,20,20);
   // Send the mouse coordinates
-  sendmouse(mouseX,mouseY);
+// sb
 }
+
+function mousePressed() {
+ //  sb.send("button_Press", "boolean", "true");
+ // console.log("Send");
+
+}
+
+
 
 // Function for sending to the socket
 function sendmouse(xpos, ypos) {
@@ -150,8 +183,7 @@ function sendmouse(xpos, ypos) {
     y: ypos
   };
 
-  // Send that object to the socket
-  socket.emit('mouse',data);
+
 }
 
 
@@ -164,7 +196,9 @@ function onValueChange1(e){
 //  var array = e.value.split(',');
   var preValue = e.preValue;
   var value = e.value;
-  socket.emit('slider', value);
+
+  sb.send( "slider1", "range", String(value));
+  // console.log();
 
   //console.log(value);
 
@@ -180,8 +214,8 @@ function onValueChange2(e){
 //  var array = e.value.split(',');
 var preValue = e.preValue;
 var value = e.value;
-socket.emit('slider2', value);
 //console.log(value);
+sb.send( "slider2", "range", String(value));
 
 
 
@@ -192,5 +226,6 @@ socket.emit('slider2', value);
 
 function resetGraph(){
 console.log("Touched");
+sb.send("centralButton", "boolean", "true");
 
 }
